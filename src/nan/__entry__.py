@@ -1,5 +1,6 @@
-import nan.__main__
+import sys
+import subprocess
 
 
 def main():
-    pass
+    subprocess.run([sys.executable, '-m', 'nan'])
