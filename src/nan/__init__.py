@@ -100,7 +100,14 @@ class NEOVM:
         pass
 
     class Integer:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.Integer):
+                self.VAL = val.VAL
+            if isinstance(val, int):
+                self.VAL = val
+
+        def __str__(self) -> str:
+            return dumps({'type': 'Integer', 'value': self.VAL})
 
     class ByteArray:
         def __init__(self, val) -> None:
@@ -120,6 +127,9 @@ class NEOVM:
                 self.VAL = val
             if isinstance(val, bytes) and len(val) == 42 and val.startswith(b'0x'):
                 self.VAL = val.decode()
+
+        def __repr__(self) -> str:
+            return repr(self.VAL)
 
         def __str__(self) -> str:
             return dumps({'type': 'Hash160', 'value': self.VAL})
