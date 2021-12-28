@@ -28,12 +28,151 @@ class Wif(str):
     pass
 
 
-class Contract(str):
+class NEOVM:
+    class Any:
+        def __init__(self, val) -> None:
+            if val is None:
+                self.VAL = None
+                return
+            if isinstance(val, NEOVM.Any):
+                self.VAL = val.VAL
+                return
+            if isinstance(val, bool):
+                self.VAL = NEOVM.Boolean(val)
+                return
+            if isinstance(val, NEOVM.Boolean):
+                self.VAL = val
+                return
+            if isinstance(val, int):
+                self.VAL = NEOVM.Integer(val)
+                return
+            if isinstance(val, NEOVM.Integer):
+                self.VAL = val
+                return
+            if isinstance(val, bytes):
+                self.VAL = NEOVM.ByteArray(val)
+                return
+            if isinstance(val, NEOVM.ByteArray):
+                self.VAL = val
+                return
+            if isinstance(val, str):
+                self.VAL = NEOVM.String(val)
+                return
+            if isinstance(val, NEOVM.String):
+                self.VAL = val
+                return
+            if isinstance(val, NEOVM.Hash160):
+                self.VAL = val
+                return
+            if isinstance(val, NEOVM.Hash256):
+                self.VAL = val
+                return
+            if isinstance(val, NEOVM.PublicKey):
+                self.VAL = val
+                return
+            if isinstance(val, NEOVM.Signature):
+                self.VAL = val
+                return
+            if isinstance(val, list):
+                self.VAL = NEOVM.Array(val)
+                return
+            if isinstance(val, NEOVM.Array):
+                self.VAL = val
+                return
+            if isinstance(val, dict):
+                self.VAL = NEOVM.Map(val)
+                return
+            if isinstance(val, NEOVM.Map):
+                self.VAL = val
+                return
+            if isinstance(val, NEOVM.InteropInterface):
+                self.VAL = val
+                return
+            raise Exception()
+
+    class Boolean:
+        pass
+
+    class Integer:
+        pass
+
+    class ByteArray:
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.ByteArray):
+                self.VAL = val.VAL
+            if isinstance(val, bytes):
+                self.VAL = val
+
+    class String:
+        pass
+
+    class Hash160:
+        pass
+
+    class Hash256:
+        pass
+
+    class PublicKey:
+        pass
+
+    class Signature:
+        pass
+
+    class Array:
+        pass
+
+    class Map:
+        pass
+
+    class InteropInterface:
+        pass
+
+    class Void:
+        def __init__(self, *args, **kwarg) -> None:
+            pass
+
+
+class Method:
+    def __init__(self, scripthash, abi) -> None:
+        self.SCRIPTHASH = scripthash
+        self.NAME = abi['name']
+        self.RETURN = getattr(NEOVM, abi['returntype'])
+        assert type(self.RETURN) == type
+        self.ARGS = [getattr(NEOVM, arg['type']) for arg in abi['parameters']]
+        for arg in self.ARGS:
+            assert type(arg) == type
+        self.ARGNAMES = [arg['name'] for arg in abi['parameters']]
+
+    @property
+    def SPEC(self):
+        return [(n, t.__name__)for n, t in zip(self.ARGNAMES, self.ARGS)], self.RETURN.__name__
+
+    def __call__(self, *args):
+        assert len(self.ARGS) == len(args)
+        for t, v in zip(self.ARGS, args):
+            print(t(v))
+
+
+class Contract:
+    def __init__(self, scripthash: str, manifest: dict) -> None:
+        self.SCRIPTHASH = scripthash
+        self.MANIFEST = manifest
+        self.NAME = manifest['name']
+        self.STANDARDS = manifest['supportedstandards']
+        for method in manifest['abi']['methods']:
+            setattr(self, method['name'], Method(scripthash, method))
+
+
+class NEP17(Contract):
     pass
 
 
 class Nan:
-    pass
+    def __init__(self) -> None:
+        pass
+        # self.NEO = NEP17('0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5')
+        # self.GAS = NEP17('0xd2a4cff31913016155e38e474a2c06d08be276cf')
+        # self.bNEO = NEP17('0x48c40d4666f93408be1bef038b6722404d9a4c2a')
 
 
 class Command:
@@ -54,8 +193,9 @@ class Command:
         print(name, 'ADDED')
 
     def AddContract(self, scripthash: str, name: str = None) -> None:
-        name = name or self.GetManifestByScripthash(scripthash)['name']
-        setattr(nan, name, Contract(scripthash))
+        manifest = self.GetManifestByScripthash(scripthash)
+        name = name or manifest['name']
+        setattr(nan, name, Contract(scripthash, manifest))
         print(name, 'ADDED')
 
     def GetWifByNEP6(self, filename: str) -> str:
