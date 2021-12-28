@@ -1,5 +1,4 @@
 ﻿namespace Neo.Plugins;
-using Neo.SmartContract.Native;
 using Neo.Wallets.NEP6;
 
 public partial class plugin

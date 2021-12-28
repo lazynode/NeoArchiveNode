@@ -8,6 +8,7 @@ class Nan:
         from subprocess import DEVNULL
         from subprocess import PIPE
         from os.path import expanduser
+        from pickle import load
         self.__process = Popen(
             ['./neo-cli'],
             cwd=expanduser("~/.nan/neo-cli"),
@@ -15,9 +16,12 @@ class Nan:
             stdout=DEVNULL,
             stderr=DEVNULL,
         )
-
-        self.__store = KV()
-        self.__store.wif = KV()
+        try:
+            with open(expanduser('~/.nan/store'), 'rb') as f:
+                self.__store = load(f)
+        except:
+            self.__store = KV()
+            self.__store.wif = KV()
 
     def __telnet(self, cmd: bytes, *args: bytes) -> bytes:
         from telnetlib import Telnet
@@ -61,8 +65,12 @@ class Nan:
 
     @ property
     def exit(self) -> None:
+        from pickle import dump
+        from os.path import expanduser
         self.__process.terminate()
         self.__process.wait()
+        with open(expanduser('~/.nan/store'), 'wb') as f:
+            dump(self.__store, f)
         exit()
 
     @ property
