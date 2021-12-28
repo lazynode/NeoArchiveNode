@@ -69,7 +69,7 @@ class Nan:
         from os.path import expanduser
         self.__process.terminate()
         self.__process.wait()
-        with open(expanduser('~/.nan/store'), 'wb') as f:
+        with open(expanduser('~/.nan/store'), 'wb', 0o400) as f:
             dump(self.__store, f)
         exit()
 
