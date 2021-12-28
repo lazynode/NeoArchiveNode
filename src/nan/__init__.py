@@ -4,7 +4,7 @@ from telnetlib import Telnet
 from subprocess import PIPE
 from subprocess import DEVNULL
 from subprocess import Popen
-from pickle import dump
+from pickle import dump, dumps
 from pickle import load
 from os.path import expanduser
 from os.path import abspath
@@ -90,6 +90,11 @@ class NEOVM:
                 return
             raise Exception()
 
+        def __str__(self) -> str:
+            if self.VAL is None:
+                return dumps({'type': 'Any', 'value': None})
+            return str(self.VAL)
+
     class Boolean:
         pass
 
@@ -107,7 +112,16 @@ class NEOVM:
         pass
 
     class Hash160:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.Hash160):
+                self.VAL = val.VAL
+            if isinstance(val, str) and len(val) == 42 and val.startswith('0x'):
+                self.VAL = val
+            if isinstance(val, bytes) and len(val) == 42 and val.startswith(b'0x'):
+                self.VAL = val.decode()
+
+        def __str__(self) -> str:
+            return dumps({'type': 'Hash160', 'value': self.VAL})
 
     class Hash256:
         pass
