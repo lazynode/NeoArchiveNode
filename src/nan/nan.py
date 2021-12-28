@@ -80,7 +80,7 @@ class Nan:
 
     @ property
     def blockindex(self) -> int:
-        return int(self.__telnet(b'get_blockindex'))
+        return int(self.__telnet('get_blockindex'))
 
     @ property
     def version(self) -> str:
