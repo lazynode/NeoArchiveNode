@@ -208,7 +208,7 @@ class Method:
         args = [t(v) for t, v in zip(self.ARGS, args)]
         script = cmd.GetScript(self.SCRIPTHASH, self.NAME, *args)
         if signers is None:
-            signers = [nan._]
+            signers = [] if nan._ is None else [nan._]
         ret = cmd.GetInvocation(script, signers)
         return Invocation(ret)
 
