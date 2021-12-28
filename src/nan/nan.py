@@ -1,14 +1,21 @@
+from os.path import abspath
+from os.path import expanduser
+from pickle import load
+from pickle import dump
+from subprocess import Popen
+from subprocess import DEVNULL
+from subprocess import PIPE
+from telnetlib import Telnet
+from getpass import getpass
+from json import loads
+
+
 class KV:
     pass
 
 
 class Nan:
     def __init__(self) -> None:
-        from subprocess import Popen
-        from subprocess import DEVNULL
-        from subprocess import PIPE
-        from os.path import expanduser
-        from pickle import load
         self.__process = Popen(
             ['./neo-cli'],
             cwd=expanduser("~/.nan/neo-cli"),
@@ -25,7 +32,6 @@ class Nan:
             self.__store.contract = KV()
 
     def __telnet(self, cmd: bytes | str, *args: bytes | str, dec: bool = True, enc: bool = True):
-        from telnetlib import Telnet
         with Telnet('localhost', 8517) as tn:
             tn.write(cmd.encode() if dec else cmd)
             tn.write(b'\n')
@@ -36,20 +42,18 @@ class Nan:
             ret = tn.read_until(b'\n')[:-1]
             return ret.decode() if enc else ret
 
-    def AddWallet(self, filename: str) -> None:
+    def AddWallet(self, filename: str, name: str = None) -> None:
         wif = self.GetWIFByNEP6(filename)
-        address = self.GetAddressByNEP6(filename)
-        setattr(self.__store.wif, address, wif)
+        name = name or self.GetAddressByNEP6(filename)
+        setattr(self.__store.wif, name, wif)
         print('OK!')
 
-    def AddContract(self, scripthash: str, name: str) -> None:
-        manifest = self.GetManifestByScripthash(scripthash)
-        setattr(self.__store.contract, manifest['name'], KV())
-        pass
+    def AddContract(self, scripthash: str, name: str = None) -> None:
+        name = name or self.GetManifestByScripthash(scripthash)['name']
+        setattr(self.__store.contract, name, scripthash)
+        print('OK!')
 
     def GetWIFByNEP6(self, filename: str) -> str:
-        from os.path import abspath
-        from getpass import getpass
         password = getpass()
         return self.__telnet(
             'get_wif_by_nep6',
@@ -58,14 +62,12 @@ class Nan:
         )
 
     def GetAddressByNEP6(self, filename: str) -> str:
-        from os.path import abspath
         return self.__telnet(
             'get_address_by_nep6',
             abspath(filename),
         )
 
     def GetManifestByScripthash(self, scripthash: str) -> dict:
-        from json import loads
         val = self.__telnet(
             'get_manifest_by_scripthash',
             scripthash,
@@ -78,8 +80,6 @@ class Nan:
 
     @ property
     def exit(self) -> None:
-        from pickle import dump
-        from os.path import expanduser
         self.__process.terminate()
         self.__process.wait()
         with open(expanduser('~/.nan/store'), 'wb', 0o400) as f:
