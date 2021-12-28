@@ -34,7 +34,7 @@ class Nan:
             tn.write(b'\n')
             return tn.read_until(b'\n')[:-1]
 
-    def OpenWallet(self, filename: str):
+    def AddWallet(self, filename: str):
         wif = self.GetWIFByNEP6(filename)
         address = self.GetAddressByNEP6(filename)
         setattr(self.__store.wif, address, wif)
