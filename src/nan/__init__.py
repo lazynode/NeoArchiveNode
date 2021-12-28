@@ -164,9 +164,9 @@ class Method:
 
     def __call__(self, *args):
         assert len(self.ARGS) == len(args)
-        args = [str(t(v)) for t, v in zip(self.ARGS, args)]
-        args = '['+','.join(args)+']'
-        ret = telnet('get_invocation', self.SCRIPTHASH, self.NAME, args)
+        args = [t(v) for t, v in zip(self.ARGS, args)]
+        script = cmd.GetScript(self.SCRIPTHASH, self.NAME, args)
+        ret = cmd.GetInvocation(script, [])
         print(ret)
 
 
@@ -225,6 +225,17 @@ class Command:
     def GetManifestByScripthash(self, scripthash: str) -> dict:
         val = telnet('get_manifest_by_scripthash', scripthash)
         return loads(val)
+
+    def GetScript(self, scripthash: str, method: str, *args):
+        args = [str(v) for v in args]
+        args = '['+','.join(args)+']'
+        ret = telnet('get_script', scripthash, method, args)
+        return bytes.fromhex(ret)
+
+    def GetInvocation(self, scipt: bytes, signers: list):
+        signers = [repr(v) for v in signers]
+        ret = telnet('get_invocation', scipt.hex(), dumps(signers))
+        return ret
 
     @property
     def exit(self):
