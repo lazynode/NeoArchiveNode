@@ -23,16 +23,17 @@ class Nan:
             self.__store = KV()
             self.__store.wif = KV()
 
-    def __telnet(self, cmd: bytes, *args: bytes) -> bytes:
+    def __telnet(self, cmd: bytes | str, *args: bytes | str, dec: bool = True, enc: bool = True) -> bytes | str:
         from telnetlib import Telnet
         with Telnet('localhost', 8517) as tn:
-            tn.write(cmd)
+            tn.write(cmd.encode() if dec else cmd)
             tn.write(b'\n')
             for arg in args:
-                tn.write(arg)
+                tn.write(arg.encode() if dec else arg)
                 tn.write(b'\n')
             tn.write(b'\n')
-            return tn.read_until(b'\n')[:-1]
+            ret = tn.read_until(b'\n')[:-1]
+            return ret.decode() if enc else ret
 
     def AddWallet(self, filename: str):
         wif = self.GetWIFByNEP6(filename)
@@ -40,24 +41,28 @@ class Nan:
         setattr(self.__store.wif, address, wif)
         print('OK!')
 
-    def GetWIFByNEP6(self, filename: str):
+    def GetWIFByNEP6(self, filename: str) -> str:
         from os.path import abspath
         from getpass import getpass
         password = getpass()
-        wif = self.__telnet(
-            b'get_wif_by_nep6',
-            abspath(filename).encode(),
-            password.encode()
+        return self.__telnet(
+            'get_wif_by_nep6',
+            abspath(filename),
+            password,
         )
-        return wif.decode()
 
-    def GetAddressByNEP6(self, filename: str):
+    def GetAddressByNEP6(self, filename: str) -> str:
         from os.path import abspath
-        address = self.__telnet(
-            b'get_address_by_nep6',
-            abspath(filename).encode(),
+        return self.__telnet(
+            'get_address_by_nep6',
+            abspath(filename),
         )
-        return address.decode()
+
+    def GetManifestByScripthash(self, scripthash: str) -> str:
+        return self.__telnet(
+            'get_manifest_by_scripthash',
+            scripthash,
+        )
 
     @ property
     def wif(self):
