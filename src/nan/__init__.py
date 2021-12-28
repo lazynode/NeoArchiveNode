@@ -175,7 +175,7 @@ class Method:
     def __call__(self, *args):
         assert len(self.ARGS) == len(args)
         args = [t(v) for t, v in zip(self.ARGS, args)]
-        script = cmd.GetScript(self.SCRIPTHASH, self.NAME, args)
+        script = cmd.GetScript(self.SCRIPTHASH, self.NAME, *args)
         ret = cmd.GetInvocation(script, [])
         print(ret)
 
