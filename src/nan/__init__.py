@@ -103,8 +103,20 @@ class NEOVM:
         def __init__(self, val) -> None:
             if isinstance(val, NEOVM.Integer):
                 self.VAL = val.VAL
+                return
             if isinstance(val, int):
                 self.VAL = val
+                return
+            if isinstance(val, float):
+                self.VAL = int(val)
+                return
+            if isinstance(val, str):
+                self.VAL = int(val)
+                return
+            raise Exception()
+
+        def __repr__(self) -> str:
+            return repr(self.VAL)
 
         def __str__(self) -> str:
             return dumps({'type': 'Integer', 'value': self.VAL})
@@ -157,6 +169,25 @@ class NEOVM:
             pass
 
 
+class Invocation:
+    def __init__(self, val) -> None:
+        self.SCRIPT = bytes.fromhex(val['script'])
+        self.STATE = val['state']
+        self.GAS = int(val['gasconsumed'])
+        self.SIGNERS = val['signers']
+        stacktype = [getattr(NEOVM, v['type']) for v in val['stack']]
+        stackval = [v['value'] for v in val['stack']]
+        for v in stacktype:
+            assert type(v) == type
+        self.STACK = [t(v) for t, v in zip(stacktype, stackval)]
+
+    def __repr__(self) -> str:
+        return 'STATE: {}; GAS: {}; STACK: {};'.format(self.STATE, self.GAS/1e8, self.STACK)
+
+    def SEND(self) -> None:
+        pass
+
+
 class Method:
     def __init__(self, scripthash, abi) -> None:
         self.SCRIPTHASH = scripthash
@@ -172,12 +203,14 @@ class Method:
     def SPEC(self):
         return [(n, t.__name__)for n, t in zip(self.ARGNAMES, self.ARGS)], self.RETURN.__name__
 
-    def __call__(self, *args):
+    def __call__(self, *args, signers=None):
         assert len(self.ARGS) == len(args)
         args = [t(v) for t, v in zip(self.ARGS, args)]
         script = cmd.GetScript(self.SCRIPTHASH, self.NAME, *args)
-        ret = cmd.GetInvocation(script, [])
-        print(ret)
+        if signers is None:
+            signers = [nan._]
+        ret = cmd.GetInvocation(script, signers)
+        return Invocation(ret)
 
 
 class Contract:
@@ -196,7 +229,7 @@ class NEP17(Contract):
 
 class Nan:
     def __init__(self) -> None:
-        pass
+        self._ = []
         # self.NEO = NEP17('0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5')
         # self.GAS = NEP17('0xd2a4cff31913016155e38e474a2c06d08be276cf')
         # self.bNEO = NEP17('0x48c40d4666f93408be1bef038b6722404d9a4c2a')
@@ -245,7 +278,7 @@ class Command:
     def GetInvocation(self, scipt: bytes, signers: list):
         signers = [repr(v) for v in signers]
         ret = telnet('get_invocation', scipt.hex(), dumps(signers))
-        return ret
+        return loads(ret)
 
     @property
     def exit(self):
