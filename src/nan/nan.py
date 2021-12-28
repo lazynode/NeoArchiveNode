@@ -31,7 +31,10 @@ class Nan:
             return tn.read_until(b'\n')[:-1]
 
     def OpenWallet(self, filename: str):
-        pass
+        wif = self.GetWIFByNEP6(filename)
+        address = self.GetAddressByNEP6(filename)
+        setattr(self.__store.wif, address, wif)
+        print('OK!')
 
     def GetWIFByNEP6(self, filename: str):
         from os.path import abspath
@@ -42,7 +45,15 @@ class Nan:
             abspath(filename).encode(),
             password.encode()
         )
-        return wif
+        return wif.decode()
+
+    def GetAddressByNEP6(self, filename: str):
+        from os.path import abspath
+        address = self.__telnet(
+            b'get_address_by_nep6',
+            abspath(filename).encode(),
+        )
+        return address.decode()
 
     @ property
     def wif(self):
