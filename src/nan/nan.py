@@ -1,3 +1,7 @@
+class KV:
+    pass
+
+
 class Nan:
     def __init__(self) -> None:
         from subprocess import Popen
@@ -12,6 +16,9 @@ class Nan:
             stderr=DEVNULL,
         )
 
+        self.__store = KV()
+        self.__store.wif = KV()
+
     def __telnet(self, cmd: bytes, *args: bytes) -> bytes:
         from telnetlib import Telnet
         with Telnet('localhost', 8517) as tn:
@@ -22,6 +29,13 @@ class Nan:
                 tn.write(b'\n')
             tn.write(b'\n')
             return tn.read_until(b'\n')[:-1]
+
+    def OpenWallet(self, filename: str):
+        pass
+
+    @property
+    def wif(self):
+        return self.__store.wif
 
     @property
     def exit(self) -> None:
@@ -34,7 +48,7 @@ class Nan:
         return int(self.__telnet(b'get_blockindex'))
 
     @property
-    def version(self):
+    def version(self) -> str:
         from . import VERSION
         return VERSION
 
