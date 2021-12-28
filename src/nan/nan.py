@@ -50,7 +50,7 @@ class Nan:
             return ret.decode() if enc else ret
 
     def AddWif(self, filename: str, name: str = None) -> None:
-        wif = self.GetWIFByNEP6(filename)
+        wif = self.GetWifByNEP6(filename)
         name = name or self.GetAddressByNEP6(filename)
         setattr(self.__store.wif, name, KV(wif))
         print('OK!')
