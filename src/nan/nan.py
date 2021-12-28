@@ -49,7 +49,7 @@ class Nan:
             ret = tn.read_until(b'\n')[:-1]
             return ret.decode() if enc else ret
 
-    def AddWallet(self, filename: str, name: str = None) -> None:
+    def AddWif(self, filename: str, name: str = None) -> None:
         wif = self.GetWIFByNEP6(filename)
         name = name or self.GetAddressByNEP6(filename)
         setattr(self.__store.wif, name, KV(wif))
