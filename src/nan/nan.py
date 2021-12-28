@@ -11,7 +11,14 @@ from json import loads
 
 
 class KV:
-    pass
+    def __init__(self, val=None) -> None:
+        self.__data = val
+
+    def __repr__(self) -> str:
+        return self.__data.__repr__()
+
+    def __str__(self) -> str:
+        return self.__data.__str__()
 
 
 class Nan:
@@ -27,9 +34,9 @@ class Nan:
             with open(expanduser('~/.nan/store'), 'rb') as f:
                 self.__store = load(f)
         except:
-            self.__store = KV()
-            self.__store.wif = KV()
-            self.__store.contract = KV()
+            self.__store = KV(self.version)
+            self.__store.wif = KV(self.version)
+            self.__store.contract = KV(self.version)
 
     def __telnet(self, cmd: bytes | str, *args: bytes | str, dec: bool = True, enc: bool = True):
         with Telnet('localhost', 8517) as tn:
@@ -45,12 +52,12 @@ class Nan:
     def AddWallet(self, filename: str, name: str = None) -> None:
         wif = self.GetWIFByNEP6(filename)
         name = name or self.GetAddressByNEP6(filename)
-        setattr(self.__store.wif, name, wif)
+        setattr(self.__store.wif, name, KV(wif))
         print('OK!')
 
     def AddContract(self, scripthash: str, name: str = None) -> None:
         name = name or self.GetManifestByScripthash(scripthash)['name']
-        setattr(self.__store.contract, name, scripthash)
+        setattr(self.__store.contract, name, KV(scripthash))
         print('OK!')
 
     def GetWIFByNEP6(self, filename: str) -> str:
@@ -74,11 +81,15 @@ class Nan:
         )
         return loads(val)
 
-    @ property
+    @property
     def wif(self) -> KV:
         return self.__store.wif
 
-    @ property
+    @property
+    def contract(self) -> KV:
+        return self.__store.contract
+
+    @property
     def exit(self) -> None:
         self.__process.terminate()
         self.__process.wait()
@@ -86,11 +97,11 @@ class Nan:
             dump(self.__store, f)
         exit()
 
-    @ property
+    @property
     def blockindex(self) -> int:
         return int(self.__telnet('get_blockindex'))
 
-    @ property
+    @property
     def version(self) -> str:
         from . import VERSION
         return VERSION
