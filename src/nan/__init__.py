@@ -92,7 +92,7 @@ class NEOVM:
 
         def __str__(self) -> str:
             if self.VAL is None:
-                return dumps({'type': 'Any', 'value': None})
+                return dumps({'type': 'Any', 'value': None}).decode()
             return str(self.VAL)
 
     class Boolean:
@@ -121,7 +121,7 @@ class NEOVM:
                 self.VAL = val.decode()
 
         def __str__(self) -> str:
-            return dumps({'type': 'Hash160', 'value': self.VAL})
+            return dumps({'type': 'Hash160', 'value': self.VAL}).decode()
 
     class Hash256:
         pass
@@ -163,8 +163,10 @@ class Method:
 
     def __call__(self, *args):
         assert len(self.ARGS) == len(args)
-        for t, v in zip(self.ARGS, args):
-            print(t(v))
+        args = [t(v) for t, v in zip(self.ARGS, args)]
+        args = '['+','.join(args)+']'
+        ret = telnet('get_invocation', self.SCRIPTHASH, self.NAME, args)
+        print(ret)
 
 
 class Contract:
