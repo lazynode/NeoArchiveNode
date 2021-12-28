@@ -1,10 +1,11 @@
 from json import loads
+from json import dumps
 from getpass import getpass
 from telnetlib import Telnet
 from subprocess import PIPE
 from subprocess import DEVNULL
 from subprocess import Popen
-from pickle import dump, dumps
+from pickle import dump
 from pickle import load
 from os.path import expanduser
 from os.path import abspath
@@ -92,7 +93,7 @@ class NEOVM:
 
         def __str__(self) -> str:
             if self.VAL is None:
-                return dumps({'type': 'Any', 'value': None}).decode()
+                return dumps({'type': 'Any', 'value': None})
             return str(self.VAL)
 
     class Boolean:
@@ -121,7 +122,7 @@ class NEOVM:
                 self.VAL = val.decode()
 
         def __str__(self) -> str:
-            return dumps({'type': 'Hash160', 'value': self.VAL}).decode()
+            return dumps({'type': 'Hash160', 'value': self.VAL})
 
     class Hash256:
         pass
@@ -163,7 +164,7 @@ class Method:
 
     def __call__(self, *args):
         assert len(self.ARGS) == len(args)
-        args = [t(v) for t, v in zip(self.ARGS, args)]
+        args = [str(t(v)) for t, v in zip(self.ARGS, args)]
         args = '['+','.join(args)+']'
         ret = telnet('get_invocation', self.SCRIPTHASH, self.NAME, args)
         print(ret)
