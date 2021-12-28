@@ -33,21 +33,32 @@ class Nan:
     def OpenWallet(self, filename: str):
         pass
 
-    @property
+    def GetWIFByNEP6(self, filename: str):
+        from os.path import abspath
+        from getpass import getpass
+        password = getpass()
+        wif = self.__telnet(
+            b'get_wif_by_nep6',
+            abspath(filename).encode(),
+            password.encode()
+        )
+        return wif
+
+    @ property
     def wif(self):
         return self.__store.wif
 
-    @property
+    @ property
     def exit(self) -> None:
         self.__process.terminate()
         self.__process.wait()
         exit()
 
-    @property
+    @ property
     def blockindex(self) -> int:
         return int(self.__telnet(b'get_blockindex'))
 
-    @property
+    @ property
     def version(self) -> str:
         from . import VERSION
         return VERSION
