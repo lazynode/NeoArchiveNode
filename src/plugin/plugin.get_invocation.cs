@@ -3,15 +3,16 @@ using Neo.VM;
 using Neo.IO.Json;
 using Neo.SmartContract;
 using Neo.Network.P2P.Payloads;
+using Neo.Wallets;
 
 public partial class plugin
 {
     string get_invocation(string script, string signers)
     {
-        var signerObjs = JObject.Parse(signers).GetArray().ToArray();
+        var signerObjs = JObject.Parse(signers).GetArray().Select(v => Contract.CreateSignatureContract(new KeyPair(Wallet.GetPrivateKeyFromWIF(v.AsString())).PublicKey).ScriptHash).ToArray();
         Transaction? tx = signerObjs.Length == 0 ? null : new Transaction
         {
-            Signers = signerObjs.Select(v => new Signer { Account = UInt160.Parse(v.AsString()) }).ToArray(),
+            Signers = signerObjs.Select(v => new Signer { Account = v }).ToArray(),
             Attributes = System.Array.Empty<TransactionAttribute>(),
             Witnesses = null,
         };
@@ -20,7 +21,7 @@ public partial class plugin
         json["script"] = script;
         json["state"] = engine.State;
         json["gasconsumed"] = engine.GasConsumed.ToString();
-        json["signers"] = signerObjs;
+        json["signers"] = JObject.Parse(signers).GetArray();
         try
         {
             json["stack"] = new JArray(engine.ResultStack.Select(p => p.ToJson()));

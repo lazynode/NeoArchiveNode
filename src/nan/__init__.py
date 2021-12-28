@@ -26,7 +26,11 @@ def telnet(cmd: str, *args: str) -> str:
 
 
 class Wif(str):
-    pass
+    def __repr__(self) -> str:
+        return 'PRIVATE KEY OF <{}>'.format(cmd.GetAddressByWif(self))
+
+    def __str__(self) -> str:
+        return super().__str__()
 
 
 class NEOVM:
@@ -174,7 +178,7 @@ class Invocation:
         self.SCRIPT = bytes.fromhex(val['script'])
         self.STATE = val['state']
         self.GAS = int(val['gasconsumed'])
-        self.SIGNERS = val['signers']
+        self.SIGNERS = [Wif(v) for v in val['signers']]
         stacktype = [getattr(NEOVM, v['type']) for v in val['stack']]
         stackval = [v['value'] for v in val['stack']]
         for v in stacktype:
@@ -184,7 +188,8 @@ class Invocation:
     def __repr__(self) -> str:
         return 'STATE: {}; GAS: {}; STACK: {};'.format(self.STATE, self.GAS/1e8, self.STACK)
 
-    def SEND(self) -> None:
+    @property
+    def send(self) -> None:
         pass
 
 
@@ -229,7 +234,7 @@ class NEP17(Contract):
 
 class Nan:
     def __init__(self) -> None:
-        self._ = []
+        self._ = None
         # self.NEO = NEP17('0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5')
         # self.GAS = NEP17('0xd2a4cff31913016155e38e474a2c06d08be276cf')
         # self.bNEO = NEP17('0x48c40d4666f93408be1bef038b6722404d9a4c2a')
@@ -276,9 +281,12 @@ class Command:
         return bytes.fromhex(ret)
 
     def GetInvocation(self, scipt: bytes, signers: list):
-        signers = [repr(v) for v in signers]
+        signers = [str(v) for v in signers]
         ret = telnet('get_invocation', scipt.hex(), dumps(signers))
         return loads(ret)
+
+    def GetAddressByWif(self, wif: str) -> str:
+        return telnet('get_address_by_wif', wif)
 
     @property
     def exit(self):
