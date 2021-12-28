@@ -22,8 +22,9 @@ class Nan:
         except:
             self.__store = KV()
             self.__store.wif = KV()
+            self.__store.contract = KV()
 
-    def __telnet(self, cmd: bytes | str, *args: bytes | str, dec: bool = True, enc: bool = True) -> bytes | str:
+    def __telnet(self, cmd: bytes | str, *args: bytes | str, dec: bool = True, enc: bool = True):
         from telnetlib import Telnet
         with Telnet('localhost', 8517) as tn:
             tn.write(cmd.encode() if dec else cmd)
@@ -35,11 +36,16 @@ class Nan:
             ret = tn.read_until(b'\n')[:-1]
             return ret.decode() if enc else ret
 
-    def AddWallet(self, filename: str):
+    def AddWallet(self, filename: str) -> None:
         wif = self.GetWIFByNEP6(filename)
         address = self.GetAddressByNEP6(filename)
         setattr(self.__store.wif, address, wif)
         print('OK!')
+
+    def AddContract(self, scripthash: str, name: str) -> None:
+        manifest = self.GetManifestByScripthash(scripthash)
+        setattr(self.__store.contract, manifest['name'], KV())
+        pass
 
     def GetWIFByNEP6(self, filename: str) -> str:
         from os.path import abspath
@@ -58,11 +64,13 @@ class Nan:
             abspath(filename),
         )
 
-    def GetManifestByScripthash(self, scripthash: str) -> str:
-        return self.__telnet(
+    def GetManifestByScripthash(self, scripthash: str) -> dict:
+        from json import loads
+        val = self.__telnet(
             'get_manifest_by_scripthash',
             scripthash,
         )
+        return loads(val)
 
     @ property
     def wif(self) -> KV:
