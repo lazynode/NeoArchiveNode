@@ -60,7 +60,7 @@ class Nan:
         setattr(self.__store.contract, name, KV(scripthash))
         print('OK!')
 
-    def GetWIFByNEP6(self, filename: str) -> str:
+    def GetWifByNEP6(self, filename: str) -> str:
         password = getpass()
         return self.__telnet(
             'get_wif_by_nep6',
