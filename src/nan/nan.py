@@ -65,7 +65,7 @@ class Nan:
         )
 
     @ property
-    def wif(self):
+    def wif(self) -> KV:
         return self.__store.wif
 
     @ property
