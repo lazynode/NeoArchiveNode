@@ -173,23 +173,23 @@ class NEOVM:
             pass
 
 
-class Invocation:
+class Transaction:
     def __init__(self, val) -> None:
-        self.SCRIPT = bytes.fromhex(val['script'])
         self.STATE = val['state']
-        self.GAS = int(val['gasconsumed'])
-        # self.SIGNERS = [Wif(v) for v in val['signers']]
         stacktype = [getattr(NEOVM, v['type']) for v in val['stack']]
         stackval = [v['value'] for v in val['stack']]
         for v in stacktype:
             assert type(v) == type
         self.STACK = [t(v) for t, v in zip(stacktype, stackval)]
+        self.TXJSON = val['txjson']
+        self.TX = bytes.fromhex(val['tx'])
 
     def __repr__(self) -> str:
-        return 'STATE: {}; GAS: {}; STACK: {};'.format(self.STATE, self.GAS/1e8, self.STACK)
+        return repr(self.STACK) if self.STATE == 'HALT' else repr((self.STATE, self.STACK))
 
     @property
     def send(self) -> None:
+        input('''SCRIPT: {}\nVMHALT: {};\nSYSFEE: {}\nNETFEE: {}\n''')
         pass
 
 
@@ -208,12 +208,12 @@ class Method:
     def SPEC(self):
         return [(n, t.__name__)for n, t in zip(self.ARGNAMES, self.ARGS)], self.RETURN.__name__
 
-    def __call__(self, *args, signer=None) -> Invocation:
+    def __call__(self, *args, signer=None) -> Transaction:
         assert len(self.ARGS) == len(args)
         args = [t(v) for t, v in zip(self.ARGS, args)]
         script = cmd.GetScript(self.SCRIPTHASH, self.NAME, *args)
         ret = cmd.GetInvocationBySigner(script, signer or nan._)
-        return Invocation(ret)
+        return Transaction(ret)
 
 
 class Contract:
@@ -240,16 +240,11 @@ class Nan:
 
 class Command:
     def __init__(self) -> None:
-        self.__process = Popen(
-            ['./neo-cli'],
-            cwd=expanduser("~/.nan/neo-cli"),
-            stdin=PIPE,
-            stdout=DEVNULL,
-            stderr=DEVNULL,
-        )
+        pass
 
     def AddWifByNep6(self, filename: str, name: str = None) -> None:
         wif = self.GetWifByNEP6(filename)
+        print(wif)
         address = self.GetAddressByNEP6(filename)
         name = name or address
         setattr(nan, name, Wif(wif))
@@ -284,14 +279,6 @@ class Command:
 
     def GetAddressByWif(self, wif: str) -> str:
         return telnet('get_address_by_wif', wif)
-
-    @property
-    def exit(self):
-        self.__process.terminate()
-        self.__process.wait()
-        with open(expanduser('~/.nan/store'), 'wb', 0o400) as f:
-            dump(nan, f)
-        exit()
 
     @property
     def blockindex(self) -> int:

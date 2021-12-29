@@ -16,6 +16,32 @@ __import__('atexit').register(
         __import__('os').path.expanduser("~/.nan/history"),
     ),
 )
+__import__('atexit').register(
+    lambda: __import__('pickle').dump(
+        nan,
+        open(__import__('os').path.expanduser('~/.nan/store'), 'wb',
+             0o400,
+             ),
+    ),
+)
+__import__('atexit').register(
+    (lambda p: lambda: p.terminate() or p.wait())(
+        __import__('subprocess').Popen(
+            ['./neo-cli'],
+            cwd=__import__('os').path.expanduser("~/.nan/neo-cli"),
+            stdin=__import__('subprocess').PIPE,
+            stdout=open(__import__('os').path.expanduser(
+                "~/.nan/neo-cli.stdout"),
+                'w',
+            ),
+            stderr=open(__import__('os').path.expanduser(
+                "~/.nan/neo-cli.stderr"),
+                'w',
+            ),
+        )
+    ),
+)
+
 __import__('readline').parse_and_bind("tab: complete")
 
 

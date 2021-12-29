@@ -39,8 +39,9 @@ public partial class plugin : Plugin, IPersistencePlugin
             stream.Write(Encoding.UTF8.GetBytes(ret?.ToString()! + "\n"));
             stream.Flush();
         }
-        catch
+        catch (Exception e)
         {
+            Console.Error.WriteLine(e);
         }
     }
     string[] ThreadReadArgs(StreamReader reader)

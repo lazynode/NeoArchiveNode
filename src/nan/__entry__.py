@@ -1,6 +1,6 @@
 import sys
-import subprocess
+import os
 
 
 def main():
-    subprocess.run([sys.executable, '-m', 'nan'])
+    os.execv(sys.executable, [sys.executable, '-m', 'nan'])
