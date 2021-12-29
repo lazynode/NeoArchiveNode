@@ -208,7 +208,7 @@ class Method:
     def SPEC(self):
         return [(n, t.__name__)for n, t in zip(self.ARGNAMES, self.ARGS)], self.RETURN.__name__
 
-    def __call__(self, *args, signer=None):
+    def __call__(self, *args, signer=None) -> Invocation:
         assert len(self.ARGS) == len(args)
         args = [t(v) for t, v in zip(self.ARGS, args)]
         script = cmd.GetScript(self.SCRIPTHASH, self.NAME, *args)
