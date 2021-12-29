@@ -178,7 +178,7 @@ class Invocation:
         self.SCRIPT = bytes.fromhex(val['script'])
         self.STATE = val['state']
         self.GAS = int(val['gasconsumed'])
-        self.SIGNERS = [Wif(v) for v in val['signers']]
+        # self.SIGNERS = [Wif(v) for v in val['signers']]
         stacktype = [getattr(NEOVM, v['type']) for v in val['stack']]
         stackval = [v['value'] for v in val['stack']]
         for v in stacktype:
@@ -208,13 +208,11 @@ class Method:
     def SPEC(self):
         return [(n, t.__name__)for n, t in zip(self.ARGNAMES, self.ARGS)], self.RETURN.__name__
 
-    def __call__(self, *args, signers=None):
+    def __call__(self, *args, signer=None):
         assert len(self.ARGS) == len(args)
         args = [t(v) for t, v in zip(self.ARGS, args)]
         script = cmd.GetScript(self.SCRIPTHASH, self.NAME, *args)
-        if signers is None:
-            signers = [] if nan._ is None else [nan._]
-        ret = cmd.GetInvocation(script, signers)
+        ret = cmd.GetInvocationBySigner(script, signer or nan._)
         return Invocation(ret)
 
 
@@ -280,9 +278,8 @@ class Command:
         ret = telnet('get_script', scripthash, method, args)
         return bytes.fromhex(ret)
 
-    def GetInvocation(self, scipt: bytes, signers: list):
-        signers = [str(v) for v in signers]
-        ret = telnet('get_invocation', scipt.hex(), dumps(signers))
+    def GetInvocationBySigner(self, scipt: bytes, signer: str):
+        ret = telnet('get_invocation', scipt.hex(), str(signer))
         return loads(ret)
 
     def GetAddressByWif(self, wif: str) -> str:
