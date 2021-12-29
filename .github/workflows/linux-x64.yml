@@ -12,6 +12,10 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
+    - name: Clone Plugin
+      uses: actions/checkout@v2
+    - name: Build Plugin
+      run: cd src/plugin/ && dotnet publish --configuration Release
     - name: Clone Neo Node
       uses: actions/checkout@v2
       with:
@@ -28,10 +32,6 @@ jobs:
         path: .modules
     - name: Build Neo Modules
       run: cd .modules/src/LevelDBStore && dotnet publish --configuration Release
-    - name: Clone Plugin
-      uses: actions/checkout@v2
-    - name: Build Plugin
-      run: cd src/plugin/ && dotnet publish --configuration Release
     - name: Prepare Release
       run: cp -r .node/neo-cli/bin/Release/net6.0/linux-x64/publish .neo-cli && mkdir -p .neo-cli/Plugins/ && cp .modules/src/LevelDBStore/bin/Release/net6.0/publish/LevelDBStore.dll .neo-cli/Plugins/ && cp bin/Release/net6.0/publish/plugin.dll .neo-cli/Plugins/
     - name: Release
