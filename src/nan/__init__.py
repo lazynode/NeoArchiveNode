@@ -10,7 +10,7 @@ from os.path import expanduser
 from os.path import abspath
 from base64 import b64decode
 
-VERSION = '0.0.35'
+VERSION = '0.1'
 
 
 def telnet(cmd: str, *args: str) -> str:
