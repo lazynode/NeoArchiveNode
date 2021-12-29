@@ -1,0 +1,39 @@
+name: Build Neo Node (linux-x64)
+
+on: workflow_dispatch
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Clone Neo Node
+      uses: actions/checkout@v2
+      with:
+        repository: neo-project/neo-node
+        ref: v3.1.0
+        path: .node
+    - name: Build Neo Node
+      run: cd .node/neo-cli && dotnet publish --configuration Release -r linux-x64 --self-contained true
+    - name: Clone Neo Modules
+      uses: actions/checkout@v2
+      with:
+        repository: neo-project/neo-modules
+        ref: v3.1.0
+        path: .modules
+    - name: Build Neo Modules
+      run: cd .modules/src/LevelDBStore && dotnet publish --configuration Release
+    - name: Clone Plugin
+      uses: actions/checkout@v2
+    - name: Build Plugin
+      run: cd src/plugin/ && dotnet publish --configuration Release
+    - name: Prepare Release
+      run: cp -r .node/neo-cli/bin/Release/net6.0/linux-x64/publish .neo-cli && mkdir -p .neo-cli/Plugins/ && cp .modules/src/LevelDBStore/bin/Release/net6.0/publish/LevelDBStore.dll .neo-cli/Plugins/ && cp bin/Release/net6.0/publish/plugin.dll .neo-cli/Plugins/
+    - name: Release
+      run: cd .neo-cli && git init && git checkout -b neo-cli-linux-x64 && git config --global user.email "lazynode@protonmail.com" && git config --global user.name "lazynode" && git add . && git commit -m release && git remote add origin https://${{ secrets.GITHUB_TOKEN }}@github.com/lazynode/NeoArchiveNode.git && git push
+      
