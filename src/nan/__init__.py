@@ -5,10 +5,10 @@ from telnetlib import Telnet
 from subprocess import PIPE
 from subprocess import DEVNULL
 from subprocess import Popen
-from pickle import dump
 from pickle import load
 from os.path import expanduser
 from os.path import abspath
+from base64 import b64decode
 
 VERSION = '0.0.35'
 
@@ -189,8 +189,15 @@ class Transaction:
 
     @property
     def send(self) -> None:
-        input('''SCRIPT: {}\nVMHALT: {};\nSYSFEE: {}\nNETFEE: {}\n''')
-        pass
+        if input('''SCRIPT: {}\nVMHALT: {}\nSYSFEE: {}\nNETFEE: {}\nSIGNER: {}\ncontinue? [Y/n]'''.format(
+            b64decode(self.TXJSON['script']).hex(),
+            self.STATE == 'HALT',
+            int(self.TXJSON['sysfee'])/1e8,
+            int(self.TXJSON['netfee'])/1e8,
+            self.TXJSON['signers'],
+        )).lower() == 'y':
+            cmd.SubmitTransaction(self.TX)
+            return self.TXJSON['hash']
 
 
 class Method:
@@ -255,6 +262,10 @@ class Command:
         name = name or manifest['name']
         setattr(nan, name, Contract(scripthash, manifest))
         print(name, 'ADDED')
+
+    def SubmitTransaction(self, tx: bytes):
+        telnet("submit_transaction", tx.hex())
+        print('TX SENT')
 
     def GetWifByNEP6(self, filename: str) -> str:
         password = getpass()
