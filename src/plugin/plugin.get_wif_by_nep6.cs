@@ -3,10 +3,5 @@ using Neo.Wallets.NEP6;
 
 public partial class plugin
 {
-    string get_wif_by_nep6(string path, string password)
-    {
-        NEP6Wallet wallet = new(path, system!.Settings);
-        wallet.Unlock(password);
-        return wallet.GetDefaultAccount().GetKey().Export();
-    }
+    string get_wif_by_nep6(string path, string password) => path.NEP6Wallet(system!.Settings, password).GetDefaultAccount().GetKey().Export();
 }

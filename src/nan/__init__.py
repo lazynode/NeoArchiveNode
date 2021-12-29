@@ -250,7 +250,7 @@ class Command:
             stderr=DEVNULL,
         )
 
-    def AddWif(self, filename: str, name: str = None) -> None:
+    def AddWifByNep6(self, filename: str, name: str = None) -> None:
         wif = self.GetWifByNEP6(filename)
         address = self.GetAddressByNEP6(filename)
         name = name or address
@@ -305,7 +305,6 @@ class Command:
         return VERSION
 
 
-nan = Nan()
 cmd = Command()
 
 try:

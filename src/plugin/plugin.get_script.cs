@@ -5,8 +5,5 @@ using Neo.SmartContract;
 
 public partial class plugin
 {
-    string get_script(string scripthash, string method, string args)
-    {
-        return UInt160.Parse(scripthash).MakeScript(method, JObject.Parse(args).GetArray().Select(v => ContractParameter.FromJson(v)).ToArray()).ToHexString();
-    }
+    string get_script(string scripthash, string method, string args) => scripthash.UInt160ByScripthash().MakeScript(method, args.ContractParametersByArgs()).ToHexString();
 }

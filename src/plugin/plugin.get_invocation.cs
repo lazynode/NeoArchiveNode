@@ -9,27 +9,21 @@ public partial class plugin
 {
     string get_invocation(string script, string signers)
     {
-        var signerObjs = JObject.Parse(signers).GetArray().Select(v => Contract.CreateSignatureContract(new KeyPair(Wallet.GetPrivateKeyFromWIF(v.AsString())).PublicKey).ScriptHash).ToArray();
-        Transaction? tx = signerObjs.Length == 0 ? null : new Transaction
+        JArray signer = JObject.Parse(signers).GetArray();
+        UInt160[] ss = signer.Select(v => Contract.CreateSignatureContract(new KeyPair(Wallet.GetPrivateKeyFromWIF(v.AsString())).PublicKey).ScriptHash).ToArray();
+        Transaction? tx = ss.Length == 0 ? null : new Transaction
         {
-            Signers = signerObjs.Select(v => new Signer { Account = v }).ToArray(),
+            Signers = ss.Select(v => new Signer { Account = v }).ToArray(),
             Attributes = System.Array.Empty<TransactionAttribute>(),
             Witnesses = null,
         };
-        using ApplicationEngine engine = ApplicationEngine.Run(script.HexToBytes(), system!.StoreView, container: tx, settings: system.Settings, gas: 20_00000000);
+        using ApplicationEngine engine = ApplicationEngine.Run(script.HexToBytes(), system!.StoreView, tx);
         JObject json = new();
         json["script"] = script;
         json["state"] = engine.State;
         json["gasconsumed"] = engine.GasConsumed.ToString();
         json["signers"] = JObject.Parse(signers).GetArray();
-        try
-        {
-            json["stack"] = new JArray(engine.ResultStack.Select(p => p.ToJson()));
-        }
-        catch (InvalidOperationException)
-        {
-            json["stack"] = "error: invalid operation";
-        }
+        json["stack"] = new JArray(engine.ResultStack.Select(p => p.ToJson()));
         return json.ToString();
     }
 
