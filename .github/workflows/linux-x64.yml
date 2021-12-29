@@ -35,5 +35,5 @@ jobs:
     - name: Prepare Release
       run: cp -r .node/neo-cli/bin/Release/net6.0/linux-x64/publish .neo-cli && mkdir -p .neo-cli/Plugins/ && cp .modules/src/LevelDBStore/bin/Release/net6.0/publish/LevelDBStore.dll .neo-cli/Plugins/ && cp src/plugin/bin/Release/net6.0/publish/plugin.dll .neo-cli/Plugins/
     - name: Release
-      run: cd .neo-cli && git init && git checkout -b neo-cli-linux-x64 && git config --global user.email "lazynode@protonmail.com" && git config --global user.name "lazynode" && git add . && git commit -m release && git remote add origin https://${{ secrets.GITHUB_TOKEN }}@github.com/lazynode/NeoArchiveNode.git && git push --set-upstream origin neo-cli-linux-x64
+      run: cd .neo-cli && git init && git checkout -b neo-cli-linux-x64 && git config --global user.email "lazynode@protonmail.com" && git config --global user.name "lazynode" && git add . && git commit -m release && git remote add origin https://${{ secrets.GITHUB_TOKEN }}@github.com/lazynode/NeoArchiveNode.git && git push -f --set-upstream origin neo-cli-linux-x64
       
