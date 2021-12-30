@@ -251,7 +251,6 @@ class Command:
 
     def AddWifByNep6(self, filename: str, name: str = None) -> None:
         wif = self.GetWifByNEP6(filename)
-        print(wif)
         address = self.GetAddressByNEP6(filename)
         name = name or address
         setattr(nan, name, Wif(wif))
