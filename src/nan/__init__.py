@@ -1,6 +1,8 @@
+import base64
 from json import loads
 from json import dumps
 from getpass import getpass
+import json
 from telnetlib import Telnet
 from subprocess import PIPE
 from subprocess import DEVNULL
@@ -38,61 +40,42 @@ class NEOVM:
         def __init__(self, val) -> None:
             if val is None:
                 self.VAL = None
-                return
-            if isinstance(val, NEOVM.Any):
+            elif isinstance(val, NEOVM.Any):
                 self.VAL = val.VAL
-                return
-            if isinstance(val, bool):
+            elif isinstance(val, bool):
                 self.VAL = NEOVM.Boolean(val)
-                return
-            if isinstance(val, NEOVM.Boolean):
+            elif isinstance(val, NEOVM.Boolean):
                 self.VAL = val
-                return
-            if isinstance(val, int):
+            elif isinstance(val, int):
                 self.VAL = NEOVM.Integer(val)
-                return
-            if isinstance(val, NEOVM.Integer):
+            elif isinstance(val, NEOVM.Integer):
                 self.VAL = val
-                return
-            if isinstance(val, bytes):
+            elif isinstance(val, bytes):
                 self.VAL = NEOVM.ByteArray(val)
-                return
-            if isinstance(val, NEOVM.ByteArray):
+            elif isinstance(val, NEOVM.ByteArray):
                 self.VAL = val
-                return
-            if isinstance(val, str):
+            elif isinstance(val, str):
                 self.VAL = NEOVM.String(val)
-                return
-            if isinstance(val, NEOVM.String):
+            elif isinstance(val, NEOVM.String):
                 self.VAL = val
-                return
-            if isinstance(val, NEOVM.Hash160):
+            elif isinstance(val, NEOVM.Hash160):
                 self.VAL = val
-                return
-            if isinstance(val, NEOVM.Hash256):
+            elif isinstance(val, NEOVM.Hash256):
                 self.VAL = val
-                return
-            if isinstance(val, NEOVM.PublicKey):
+            elif isinstance(val, NEOVM.PublicKey):
                 self.VAL = val
-                return
-            if isinstance(val, NEOVM.Signature):
+            elif isinstance(val, NEOVM.Signature):
                 self.VAL = val
-                return
-            if isinstance(val, list):
+            elif isinstance(val, list):
                 self.VAL = NEOVM.Array(val)
-                return
-            if isinstance(val, NEOVM.Array):
+            elif isinstance(val, NEOVM.Array):
                 self.VAL = val
-                return
-            if isinstance(val, dict):
+            elif isinstance(val, dict):
                 self.VAL = NEOVM.Map(val)
-                return
-            if isinstance(val, NEOVM.Map):
+            elif isinstance(val, NEOVM.Map):
                 self.VAL = val
-                return
-            if isinstance(val, NEOVM.InteropInterface):
+            elif isinstance(val, NEOVM.InteropInterface):
                 self.VAL = val
-                return
             raise Exception()
 
         def __str__(self) -> str:
@@ -101,22 +84,29 @@ class NEOVM:
             return str(self.VAL)
 
     class Boolean:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.Boolean):
+                self.VAL = val.VAL
+            elif isinstance(val, bool):
+                self.VAL = val
+            elif isinstance(val, str):
+                self.VAL = val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh']
+            else:
+                raise Exception()
+
+        def __str__(self) -> str:
+            return str(self.VAL)
 
     class Integer:
         def __init__(self, val) -> None:
             if isinstance(val, NEOVM.Integer):
                 self.VAL = val.VAL
-                return
-            if isinstance(val, int):
+            elif isinstance(val, int):
                 self.VAL = val
-                return
-            if isinstance(val, float):
+            elif isinstance(val, float):
                 self.VAL = int(val)
-                return
-            if isinstance(val, str):
+            elif isinstance(val, str):
                 self.VAL = int(val)
-                return
             raise Exception()
 
         def __repr__(self) -> str:
@@ -129,20 +119,36 @@ class NEOVM:
         def __init__(self, val) -> None:
             if isinstance(val, NEOVM.ByteArray):
                 self.VAL = val.VAL
-            if isinstance(val, bytes):
+            elif isinstance(val, bytes):
                 self.VAL = val
+            else:
+                raise Exception()
+
+        def __str__(self) -> str:
+            return dumps({'type': 'ByteArray', 'value': base64.b64encode(self.VAL)})
 
     class String:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.String):
+                self.VAL = val.VAL
+            elif isinstance(val, str):
+                self.VAL = val
+            else:
+                raise Exception()
+
+        def __str__(self) -> str:
+            return dumps({'type': 'String', 'value': self.VAL})
 
     class Hash160:
         def __init__(self, val) -> None:
             if isinstance(val, NEOVM.Hash160):
                 self.VAL = val.VAL
-            if isinstance(val, str) and len(val) == 42 and val.startswith('0x'):
+            elif isinstance(val, str) and len(val) == 42 and val.startswith('0x'):
                 self.VAL = val
-            if isinstance(val, bytes) and len(val) == 42 and val.startswith(b'0x'):
+            elif isinstance(val, bytes) and len(val) == 42 and val.startswith(b'0x'):
                 self.VAL = val.decode()
+            else:
+                raise Exception()
 
         def __repr__(self) -> str:
             return repr(self.VAL)
@@ -151,19 +157,69 @@ class NEOVM:
             return dumps({'type': 'Hash160', 'value': self.VAL})
 
     class Hash256:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.Hash256):
+                self.VAL = val.VAL
+            elif isinstance(val, str) and len(val) == 66 and val.startswith('0x'):
+                self.VAL = val
+            elif isinstance(val, bytes) and len(val) == 66 and val.startswith(b'0x'):
+                self.VAL = val.decode()
+            else:
+                raise Exception()
+
+        def __repr__(self) -> str:
+            return repr(self.VAL)
+
+        def __str__(self) -> str:
+            return dumps({'type': 'Hash256', 'value': self.VAL})
 
     class PublicKey:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.PublicKey):
+                self.VAL = val.VAL
+            elif isinstance(val, str) and len(val) == 66:
+                self.VAL = val
+            else:
+                raise Exception()
+
+        def __str__(self) -> str:
+            return dumps({'type': 'PublicKey', 'value': self.VAL})
 
     class Signature:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.Signature):
+                self.VAL = val.VAL
+            elif isinstance(val, bytes):
+                self.VAL = val
+            else:
+                raise Exception()
+
+        def __str__(self) -> str:
+            return dumps({'type': 'Signature', 'value': base64.b64encode(self.VAL)})
 
     class Array:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.Array):
+                self.VAL = val.VAL
+            elif isinstance(val, list):
+                self.VAL = val
+            else:
+                raise Exception()
+
+        def __str__(self) -> str:
+            return dumps({'type': 'Array', 'value': str(self.VAL)})
 
     class Map:
-        pass
+        def __init__(self, val) -> None:
+            if isinstance(val, NEOVM.Map):
+                self.VAL = val.VAL
+            elif isinstance(val, dict):
+                self.VAL = val
+            else:
+                raise Exception()
+
+        def __str__(self) -> str:
+            return dumps({'type': 'Map', 'value': str([{'key':k, 'value':v} for k, v in self.VAL.items() ])})
 
     class InteropInterface:
         pass
