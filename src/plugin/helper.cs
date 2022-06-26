@@ -12,8 +12,7 @@ static class helper
 {
     public static NEP6Wallet NEP6WalletByFilename(this string filename, ProtocolSettings settings, string? password = null)
     {
-        NEP6Wallet wallet = new(filename, settings);
-        if (password is not null) wallet.Unlock(password);
+        NEP6Wallet wallet = new(filename, password, settings);
         return wallet;
     }
     public static Wallet WalletByWif(this string wif, ProtocolSettings settings) => new wallet(wif, settings);

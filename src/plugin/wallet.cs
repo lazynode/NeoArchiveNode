@@ -21,6 +21,7 @@ class wallet : Wallet
     public override WalletAccount CreateAccount(Contract contract, KeyPair? key = null) => throw new NotImplementedException();
     public override WalletAccount CreateAccount(UInt160 scriptHash) => throw new NotImplementedException();
     public override void Delete() => throw new NotImplementedException();
+    public override void Save() => throw new NotImplementedException();
     public override bool DeleteAccount(UInt160 scriptHash) => throw new NotImplementedException();
     public override WalletAccount GetAccount(UInt160 scriptHash) => new walletaccount(WIF, ProtocolSettings);
     public override IEnumerable<WalletAccount> GetAccounts() => throw new NotImplementedException();
