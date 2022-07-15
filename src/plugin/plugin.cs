@@ -12,15 +12,19 @@ using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 
-public partial class plugin : Plugin, IPersistencePlugin
+public partial class plugin : Plugin
 {
     NeoSystem? system;
     IStore? store;
     TcpListener? listener;
     Thread? thread;
-
+    public plugin()
+    {
+        Blockchain.Committing += OnPersist;
+    }
     public override void Dispose()
     {
+        Blockchain.Committing -= OnPersist;
         base.Dispose();
         listener?.Stop();
         thread?.Join();
